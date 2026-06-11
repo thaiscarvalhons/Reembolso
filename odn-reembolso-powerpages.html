@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ODN Reembolso — Power Pages (TO BE)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --pp-blue:#0078D4;--pp-blue-dark:#005A9E;--pp-blue-light:#EFF6FC;--pp-blue-mid:#106EBE;
+  --pp-green:#107C10;--pp-green-light:#DFF6DD;
+  --pp-red:#A4262C;--pp-red-light:#FDE7E9;
+  --pp-amber:#835B00;--pp-amber-light:#FFF4CE;
+  --pp-purple:#5C2D91;--pp-purple-light:#F4EBF9;
+  --pp-border:#E1DFDD;--pp-border-strong:#C8C6C4;
+  --pp-text:#201F1E;--pp-text-muted:#605E5C;--pp-text-subtle:#A19F9D;
+  --pp-bg:#F8F6F4;--pp-surface:#FFFFFF;
+  --font:'Segoe UI',system-ui,-apple-system,sans-serif;
+}
+html,body{height:100%;background:#0f1729;display:flex;align-items:center;justify-content:center;font-family:var(--font)}
+body{padding:24px 0 40px}
+
+.device-wrap{display:flex;flex-direction:column;align-items:center;gap:12px}
+.device-label{color:rgba(255,255,255,.5);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.device{width:390px;background:#1C1C1E;border-radius:48px;padding:12px;box-shadow:0 32px 64px rgba(0,0,0,.7),inset 0 0 0 1px #3a3a3c}
+.notch{width:120px;height:34px;background:#1C1C1E;border-radius:0 0 20px 20px;margin:0 auto;position:relative;z-index:10}
+.screen{background:var(--pp-bg);border-radius:38px;overflow:hidden;height:760px;position:relative}
+.status-bar{height:44px;background:var(--pp-blue);display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:12px;font-weight:600;color:#fff;flex-shrink:0}
+.status-right{display:flex;gap:6px;align-items:center}
+
+.view{position:absolute;inset:0;display:none;flex-direction:column;background:var(--pp-bg)}
+.view.active{display:flex}
+
+.topbar{background:var(--pp-blue);padding:0 16px 14px;flex-shrink:0}
+.topbar-inner{display:flex;align-items:center;gap:10px;padding-top:10px}
+.topbar h1{font-size:19px;font-weight:600;color:#fff;flex:1}
+.topbar h2{font-size:16px;font-weight:600;color:#fff;flex:1}
+.back-btn{background:none;border:none;color:rgba(255,255,255,.9);font-size:13px;font-family:var(--font);cursor:pointer;display:flex;align-items:center;gap:4px;padding:4px 0}
+.icon-btn{width:34px;height:34px;border-radius:4px;border:none;background:rgba(255,255,255,.15);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px}
+.icon-btn:hover{background:rgba(255,255,255,.25)}
+.topbar-sub{font-size:12px;color:rgba(255,255,255,.75);margin-top:4px}
+
+.scroll{flex:1;overflow-y:auto;padding:14px 14px 24px;-webkit-overflow-scrolling:touch}
+.scroll::-webkit-scrollbar{width:3px}
+.scroll::-webkit-scrollbar-thumb{background:var(--pp-border-strong);border-radius:2px}
+
+.card{background:var(--pp-surface);border-radius:10px;border:1px solid var(--pp-border);overflow:hidden;margin-bottom:10px}
+.card-header{padding:12px 14px;border-bottom:1px solid var(--pp-border);display:flex;align-items:center;justify-content:space-between}
+.card-header h3{font-size:14px;font-weight:600;color:var(--pp-text)}
+.card-body{padding:12px 14px}
+
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.stat-tile{background:var(--pp-surface);border-radius:10px;border:1px solid var(--pp-border);padding:12px 14px}
+.stat-tile .lbl{font-size:11px;color:var(--pp-text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.stat-tile .num{font-size:22px;font-weight:700;color:var(--pp-text)}
+.stat-tile .sub{font-size:11px;color:var(--pp-text-subtle);margin-top:2px}
+.stat-tile.accent{background:var(--pp-blue);border-color:var(--pp-blue)}
+.stat-tile.accent .lbl{color:rgba(255,255,255,.8)}
+.stat-tile.accent .num{color:#fff}
+.stat-tile.accent .sub{color:rgba(255,255,255,.65)}
+
+.req-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--pp-border);cursor:pointer;background:var(--pp-surface);transition:background .12s}
+.req-row:last-child{border-bottom:none}
+.req-row:hover{background:#F3F2F1}
+.req-row-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.icon-transport{background:#EFF6FC;color:var(--pp-blue)}
+.icon-food{background:#FFF4CE;color:var(--pp-amber)}
+.icon-hotel{background:#F4EBF9;color:var(--pp-purple)}
+.icon-train{background:#DFF6DD;color:var(--pp-green)}
+.req-row-info{flex:1;min-width:0}
+.req-row-title{font-size:13px;font-weight:600;color:var(--pp-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.req-row-sub{font-size:11px;color:var(--pp-text-muted);margin-top:1px}
+.req-row-right{text-align:right;flex-shrink:0}
+.req-row-value{font-size:13px;font-weight:700;color:var(--pp-text)}
+
+.badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:.04em}
+.badge-draft{background:#F3F2F1;color:var(--pp-text-muted)}
+.badge-pending{background:var(--pp-amber-light);color:var(--pp-amber)}
+.badge-approved{background:var(--pp-green-light);color:var(--pp-green)}
+.badge-rejected{background:var(--pp-red-light);color:var(--pp-red)}
+
+.pill-nav{display:flex;background:var(--pp-surface);border:1px solid var(--pp-border);border-radius:6px;overflow:hidden;margin-bottom:10px}
+.pill-nav button{flex:1;padding:8px 4px;font-size:11px;font-weight:600;color:var(--pp-text-muted);background:none;border:none;font-family:var(--font);cursor:pointer;border-right:1px solid var(--pp-border)}
+.pill-nav button:last-child{border-right:none}
+.pill-nav button.active{background:var(--pp-blue);color:#fff}
+
+.fab{position:absolute;bottom:22px;right:18px;display:flex;align-items:center;gap:8px;background:var(--pp-blue);border:none;color:#fff;font-size:13px;font-weight:600;font-family:var(--font);padding:12px 18px;border-radius:24px;cursor:pointer;box-shadow:0 4px 14px rgba(0,120,212,.4)}
+
+.bottom-nav{height:58px;border-top:1px solid var(--pp-border);display:flex;align-items:center;background:var(--pp-surface);flex-shrink:0}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:6px 0;border:none;background:none;font-family:var(--font)}
+.bnav-item i{font-size:20px;color:var(--pp-text-subtle)}
+.bnav-item span{font-size:10px;color:var(--pp-text-subtle)}
+.bnav-item.active i,.bnav-item.active span{color:var(--pp-blue)}
+
+.form-section{background:var(--pp-surface);border-radius:10px;border:1px solid var(--pp-border);padding:14px;margin-bottom:10px}
+.form-section-title{font-size:12px;font-weight:700;color:var(--pp-text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.form-section-title i{font-size:14px;color:var(--pp-blue)}
+.form-group{margin-bottom:12px}
+.form-group:last-child{margin-bottom:0}
+.form-label{font-size:12px;font-weight:600;color:var(--pp-text-muted);margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.form-label .req{color:var(--pp-red)}
+.form-input{width:100%;border:1px solid var(--pp-border-strong);border-radius:4px;padding:9px 10px;font-size:13px;font-family:var(--font);color:var(--pp-text);background:#fff;outline:none;transition:border-color .15s}
+.form-input:focus{border-color:var(--pp-blue);box-shadow:0 0 0 2px rgba(0,120,212,.15)}
+.form-input.error{border-color:var(--pp-red)}
+.form-select{width:100%;border:1px solid var(--pp-border-strong);border-radius:4px;padding:9px 10px;font-size:13px;font-family:var(--font);color:var(--pp-text);background:#fff;outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23605E5C' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.form-select:focus{border-color:var(--pp-blue);box-shadow:0 0 0 2px rgba(0,120,212,.15)}
+.error-msg{font-size:11px;color:var(--pp-red);margin-top:4px;display:flex;align-items:center;gap:3px}
+.policy-callout{background:var(--pp-blue-light);border-left:3px solid var(--pp-blue);border-radius:0 6px 6px 0;padding:10px 12px;margin-top:6px;display:none}
+.policy-callout.open{display:block}
+.policy-callout p{font-size:12px;color:#004E8C;line-height:1.5}
+.policy-callout strong{font-size:11px;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px;color:var(--pp-blue-dark)}
+.policy-link{font-size:11px;color:var(--pp-blue);cursor:pointer;text-decoration:underline;margin-left:4px}
+
+.step-tracker{display:flex;align-items:center;margin:12px 0 4px}
+.step-node{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1}
+.step-circle{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid var(--pp-border-strong);color:var(--pp-text-muted);background:#fff;transition:all .2s}
+.step-circle.done{background:var(--pp-green);border-color:var(--pp-green);color:#fff}
+.step-circle.active{background:var(--pp-blue);border-color:var(--pp-blue);color:#fff}
+.step-lbl{font-size:10px;color:var(--pp-text-subtle);text-align:center}
+.step-lbl.active{color:#fff;font-weight:600}
+.step-line{flex:1;height:2px;background:var(--pp-border);margin-top:13px;transition:background .3s}
+.step-line.done{background:var(--pp-green)}
+
+.attach-zone{border:2px dashed var(--pp-border-strong);border-radius:8px;padding:16px;text-align:center;cursor:pointer;background:var(--pp-bg);transition:all .15s}
+.attach-zone:hover{border-color:var(--pp-blue);background:var(--pp-blue-light)}
+.attach-zone i{font-size:24px;color:var(--pp-blue)}
+.attach-zone p{font-size:12px;color:var(--pp-text-muted);margin-top:5px}
+.attach-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--pp-bg);border:1px solid var(--pp-border);border-radius:6px;margin-top:6px;font-size:12px;color:var(--pp-text)}
+.attach-item i{color:var(--pp-blue);font-size:15px}
+.attach-remove{margin-left:auto;background:none;border:none;color:var(--pp-text-subtle);cursor:pointer;font-size:15px}
+
+.btn-primary{display:block;width:100%;padding:12px;border-radius:6px;font-size:14px;font-weight:600;font-family:var(--font);cursor:pointer;border:none;background:var(--pp-blue);color:#fff}
+.btn-primary:hover{background:var(--pp-blue-dark)}
+.btn-secondary{display:block;width:100%;padding:11px;border-radius:6px;font-size:14px;font-weight:600;font-family:var(--font);cursor:pointer;background:#fff;color:var(--pp-blue);border:1.5px solid var(--pp-blue)}
+.btn-ghost{display:block;width:100%;padding:11px;border-radius:6px;font-size:14px;font-weight:600;font-family:var(--font);cursor:pointer;background:#fff;color:var(--pp-text-muted);border:1px solid var(--pp-border-strong)}
+.btn-row{display:flex;gap:8px}
+.btn-row>*{flex:1}
+
+.tl-wrap{padding:4px 0}
+.tl-item{display:flex;gap:10px}
+.tl-left{display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0}
+.tl-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.tl-dot-done{background:var(--pp-green)}
+.tl-dot-active{background:var(--pp-blue);box-shadow:0 0 0 3px var(--pp-blue-light)}
+.tl-dot-pending{background:var(--pp-border-strong)}
+.tl-line{width:2px;flex:1;background:var(--pp-border);margin:3px 0}
+.tl-content{flex:1;padding-bottom:18px}
+.tl-title{font-size:13px;font-weight:600;color:var(--pp-text)}
+.tl-sub{font-size:11px;color:var(--pp-text-muted);margin-top:1px}
+.tl-date{font-size:10px;color:var(--pp-text-subtle);margin-top:2px}
+
+.notif-icon{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 10px}
+.notif-icon-ok{background:var(--pp-green-light);color:var(--pp-green)}
+.notif-icon-fail{background:var(--pp-red-light);color:var(--pp-red)}
+.notif-title{font-size:18px;font-weight:700;color:var(--pp-text)}
+.notif-sub{font-size:13px;color:var(--pp-text-muted);margin-top:5px;line-height:1.5}
+
+.reason-card{background:var(--pp-red-light);border:1px solid #F1C5C7;border-radius:8px;padding:12px;margin-bottom:12px}
+.reason-card strong{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--pp-red);display:block;margin-bottom:4px}
+.reason-card p{font-size:12px;color:#6B1317;line-height:1.5}
+
+.approver-row{background:var(--pp-surface);border-radius:10px;border:1px solid var(--pp-border);margin-bottom:8px;overflow:hidden}
+.approver-row-top{padding:12px 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.approver-row-name{font-size:11px;color:var(--pp-text-muted);margin-bottom:2px}
+.approver-row-title{font-size:14px;font-weight:600;color:var(--pp-text)}
+.approver-row-meta{font-size:11px;color:var(--pp-text-subtle);padding:0 14px 10px;display:flex;gap:10px;flex-wrap:wrap}
+.approver-row-meta span{display:flex;align-items:center;gap:3px}
+.approver-row-actions{display:flex;border-top:1px solid var(--pp-border)}
+.app-action-btn{flex:1;padding:10px;font-size:13px;font-weight:600;font-family:var(--font);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px}
+.app-action-approve{background:var(--pp-green-light);color:var(--pp-green);border-right:1px solid var(--pp-border)}
+.app-action-approve:hover{background:#c3e5c3}
+.app-action-reject{background:var(--pp-red-light);color:var(--pp-red)}
+.app-action-reject:hover{background:#f5c0c3}
+.approved-state{padding:10px 14px;background:var(--pp-green-light);text-align:center;font-size:12px;font-weight:600;color:var(--pp-green);display:flex;align-items:center;justify-content:center;gap:6px}
+
+.detail-row{display:flex;justify-content:space-between;padding:9px 14px;border-bottom:1px solid var(--pp-border)}
+.detail-row:last-child{border-bottom:none}
+.detail-key{font-size:12px;color:var(--pp-text-muted)}
+.detail-val{font-size:12px;font-weight:600;color:var(--pp-text)}
+
+.draft-saved{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--pp-text-muted);background:var(--pp-amber-light);border:1px solid #D9B300;border-radius:6px;padding:7px 10px;margin-bottom:10px}
+
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#323130;color:#fff;border-radius:8px;padding:12px 20px;font-size:13px;display:none;z-index:200;white-space:nowrap}
+.toast.show{display:block;animation:fadein .2s}
+@keyframes fadein{from{opacity:0;transform:translateX(-50%) translateY(4px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+</style>
+</head>
+<body>
+<div class="device-wrap">
+  <div class="device-label">Power Pages — Portal Web (PWA)</div>
+  <div class="device">
+    <div class="notch"></div>
+    <div class="screen">
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-right">
+          <i class="ti ti-wifi" style="font-size:13px"></i>
+          <i class="ti ti-battery-2" style="font-size:13px"></i>
+        </div>
+      </div>
+
+      <!-- HOME -->
+      <div class="view active" id="p-home">
+        <div class="topbar">
+          <div class="topbar-inner">
+            <h1>ODN Reembolso</h1>
+            <button class="icon-btn" onclick="goTo('p-approver')"><i class="ti ti-shield-check"></i></button>
+          </div>
+          <div class="topbar-sub">Olá, Maria Santos · TI</div>
+        </div>
+        <div class="scroll">
+          <div class="stat-grid">
+            <div class="stat-tile accent"><div class="lbl">Em aberto</div><div class="num">R$ 1.847</div><div class="sub">3 solicitações</div></div>
+            <div class="stat-tile"><div class="lbl">Aprovados (mês)</div><div class="num">R$ 3.210</div><div class="sub">5 reembolsos</div></div>
+            <div class="stat-tile"><div class="lbl">Rascunhos</div><div class="num">2</div><div class="sub">Pendentes de envio</div></div>
+            <div class="stat-tile"><div class="lbl">Reprovados</div><div class="num">1</div><div class="sub">Requer correção</div></div>
+          </div>
+          <div class="pill-nav">
+            <button class="active" onclick="filterPill(this)">Todos</button>
+            <button onclick="filterPill(this)">Rascunho</button>
+            <button onclick="filterPill(this)">Em análise</button>
+            <button onclick="filterPill(this)">Aprovados</button>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Solicitações recentes</h3></div>
+            <div class="req-row" onclick="goTo('p-detail')">
+              <div class="req-row-icon icon-hotel"><i class="ti ti-building"></i></div>
+              <div class="req-row-info"><div class="req-row-title">Hospedagem — São Paulo</div><div class="req-row-sub">05/06/2025 · Comercial</div></div>
+              <div class="req-row-right"><div class="req-row-value">R$ 890</div><div style="margin-top:3px"><span class="badge badge-pending">Em análise</span></div></div>
+            </div>
+            <div class="req-row" onclick="goTo('p-notif-approved')">
+              <div class="req-row-icon icon-transport"><i class="ti ti-car"></i></div>
+              <div class="req-row-info"><div class="req-row-title">Transporte — Cliente BH</div><div class="req-row-sub">01/06/2025 · Comercial</div></div>
+              <div class="req-row-right"><div class="req-row-value">R$ 245</div><div style="margin-top:3px"><span class="badge badge-approved">Aprovado</span></div></div>
+            </div>
+            <div class="req-row" onclick="goTo('p-notif-rejected')">
+              <div class="req-row-icon icon-food"><i class="ti ti-tools-kitchen-2"></i></div>
+              <div class="req-row-info"><div class="req-row-title">Alimentação — Reunião</div><div class="req-row-sub">28/05/2025 · TI</div></div>
+              <div class="req-row-right"><div class="req-row-value">R$ 320</div><div style="margin-top:3px"><span class="badge badge-rejected">Reprovado</span></div></div>
+            </div>
+            <div class="req-row" onclick="goTo('p-form')">
+              <div class="req-row-icon icon-train"><i class="ti ti-school"></i></div>
+              <div class="req-row-info"><div class="req-row-title">Curso Power Platform</div><div class="req-row-sub">26/05/2025 · TI</div></div>
+              <div class="req-row-right"><div class="req-row-value">R$ 392</div><div style="margin-top:3px"><span class="badge badge-draft">Rascunho</span></div></div>
+            </div>
+          </div>
+          <div style="height:80px"></div>
+        </div>
+        <button class="fab" onclick="goTo('p-form')"><i class="ti ti-plus"></i> Nova solicitação</button>
+        <div class="bottom-nav">
+          <button class="bnav-item active"><i class="ti ti-home"></i><span>Início</span></button>
+          <button class="bnav-item" onclick="goTo('p-approver')"><i class="ti ti-check"></i><span>Aprovações</span></button>
+          <button class="bnav-item"><i class="ti ti-bell"></i><span>Alertas</span></button>
+          <button class="bnav-item"><i class="ti ti-user"></i><span>Perfil</span></button>
+        </div>
+      </div>
+
+      <!-- FORM -->
+      <div class="view" id="p-form">
+        <div class="topbar">
+          <div class="topbar-inner">
+            <button class="back-btn" onclick="goTo('p-home')"><i class="ti ti-arrow-left" style="font-size:15px"></i> Voltar</button>
+            <h2>Nova solicitação</h2>
+          </div>
+          <div style="margin-top:10px">
+            <div class="step-tracker">
+              <div class="step-node"><div class="step-circle active" id="ps1">1</div><div class="step-lbl active" id="psl1">Dados</div></div>
+              <div class="step-line" id="pline1"></div>
+              <div class="step-node"><div class="step-circle" id="ps2">2</div><div class="step-lbl" id="psl2">Anexos</div></div>
+              <div class="step-line" id="pline2"></div>
+              <div class="step-node"><div class="step-circle" id="ps3">3</div><div class="step-lbl" id="psl3">Revisão</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="scroll" id="pf-step1">
+          <div class="draft-saved"><i class="ti ti-device-floppy" style="font-size:13px"></i> Rascunho salvo automaticamente às 09:38</div>
+          <div class="form-section">
+            <div class="form-section-title"><i class="ti ti-info-circle"></i> Informações gerais</div>
+            <div class="form-group">
+              <div class="form-label">Título <span class="req">*</span></div>
+              <input class="form-input" id="pf-title" type="text" value="Curso Power Platform" placeholder="Descreva a despesa">
+              <div class="error-msg" id="perr-title" style="display:none"><i class="ti ti-alert-circle" style="font-size:12px"></i> Campo obrigatório</div>
+            </div>
+            <div class="form-group">
+              <div class="form-label">Categoria <span class="req">*</span> <span class="policy-link" onclick="togglePPolicy()">Ver política</span></div>
+              <select class="form-select" id="pf-cat">
+                <option value="">Selecione</option>
+                <option value="alimentacao">Alimentação</option>
+                <option value="transporte">Transporte</option>
+                <option value="hospedagem">Hospedagem</option>
+                <option value="treinamento" selected>Treinamento</option>
+                <option value="outros">Outros</option>
+              </select>
+              <div class="error-msg" id="perr-cat" style="display:none"><i class="ti ti-alert-circle" style="font-size:12px"></i> Selecione uma categoria</div>
+              <div class="policy-callout" id="p-policy">
+                <strong>Política — Treinamento</strong>
+                <p>Limite de R$ 1.500/mês. Exige comprovante de inscrição e aprovação do gestor. Cursos online requerem certificado de conclusão.</p>
+              </div>
+            </div>
+          </div>
+          <div class="form-section">
+            <div class="form-section-title"><i class="ti ti-receipt"></i> Valores e datas</div>
+            <div class="form-group">
+              <div class="form-label">Data da despesa <span class="req">*</span></div>
+              <input class="form-input" id="pf-date" type="date" value="2025-05-26">
+            </div>
+            <div class="form-group">
+              <div class="form-label">Valor (R$) <span class="req">*</span></div>
+              <input class="form-input" id="pf-value" type="number" value="392.50" placeholder="0,00">
+              <div class="error-msg" id="perr-value" style="display:none"><i class="ti ti-alert-circle" style="font-size:12px"></i> Informe um valor válido</div>
+            </div>
+            <div class="form-group">
+              <div class="form-label">Centro de custo <span class="req">*</span></div>
+              <select class="form-select"><option value="ti" selected>TI — Tecnologia</option><option>Comercial</option><option>RH</option><option>Financeiro</option></select>
+            </div>
+          </div>
+          <div class="form-section">
+            <div class="form-section-title"><i class="ti ti-notes"></i> Justificativa</div>
+            <div class="form-group">
+              <textarea class="form-input" rows="3" placeholder="Descreva a necessidade...">Certificação Power Platform Fundamentals para o projeto ODN Reembolso.</textarea>
+            </div>
+          </div>
+          <div class="btn-row" style="margin-top:4px">
+            <button class="btn-ghost" onclick="showPToast('Rascunho salvo!')">Salvar rascunho</button>
+            <button class="btn-primary" onclick="pGoStep(2)">Próximo</button>
+          </div>
+          <div style="height:14px"></div>
+        </div>
+        <div class="scroll" id="pf-step2" style="display:none">
+          <div class="form-section">
+            <div class="form-section-title"><i class="ti ti-paperclip"></i> Comprovantes</div>
+            <div class="attach-zone" onclick="pAddAttach()">
+              <i class="ti ti-cloud-upload"></i>
+              <p>Toque para carregar arquivos</p>
+              <p style="font-size:10px;color:var(--pp-text-subtle);margin-top:3px">PDF, JPG, PNG — até 10 MB por arquivo</p>
+            </div>
+            <div id="p-attach-list">
+              <div class="attach-item"><i class="ti ti-file-text"></i> Comprovante_inscricao.pdf <button class="attach-remove" onclick="this.closest('.attach-item').remove()"><i class="ti ti-x"></i></button></div>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn-ghost" onclick="pGoStep(1)"><i class="ti ti-arrow-left"></i> Voltar</button>
+            <button class="btn-primary" onclick="pGoStep(3)">Revisar</button>
+          </div>
+          <div style="height:14px"></div>
+        </div>
+        <div class="scroll" id="pf-step3" style="display:none">
+          <div class="form-section">
+            <div class="form-section-title"><i class="ti ti-eye"></i> Revisão da solicitação</div>
+            <div style="display:flex;flex-direction:column">
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--pp-border)"><span style="font-size:12px;color:var(--pp-text-muted)">Título</span><span style="font-size:12px;font-weight:600;color:var(--pp-text)">Curso Power Platform</span></div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--pp-border)"><span style="font-size:12px;color:var(--pp-text-muted)">Categoria</span><span style="font-size:12px;font-weight:600;color:var(--pp-text)">Treinamento</span></div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--pp-border)"><span style="font-size:12px;color:var(--pp-text-muted)">Data</span><span style="font-size:12px;font-weight:600;color:var(--pp-text)">26/05/2025</span></div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--pp-border)"><span style="font-size:12px;color:var(--pp-text-muted)">Valor</span><span style="font-size:13px;font-weight:700;color:var(--pp-blue)">R$ 392,50</span></div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--pp-border)"><span style="font-size:12px;color:var(--pp-text-muted)">Centro de custo</span><span style="font-size:12px;font-weight:600;color:var(--pp-text)">TI</span></div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0"><span style="font-size:12px;color:var(--pp-text-muted)">Comprovantes</span><span style="font-size:12px;font-weight:600;color:var(--pp-blue)">1 arquivo</span></div>
+            </div>
+          </div>
+          <div style="background:var(--pp-amber-light);border:1px solid #D9B300;border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--pp-amber);display:flex;gap:8px">
+            <i class="ti ti-alert-triangle" style="font-size:15px;flex-shrink:0;margin-top:1px"></i>
+            Ao enviar, a solicitação será encaminhada para Carlos Mendes (gestor direto).
+          </div>
+          <div class="btn-row">
+            <button class="btn-ghost" onclick="pGoStep(2)"><i class="ti ti-arrow-left"></i> Voltar</button>
+            <button class="btn-primary" onclick="pSubmit()">Confirmar envio</button>
+          </div>
+          <div style="height:14px"></div>
+        </div>
+      </div>
+
+      <!-- DETAIL -->
+      <div class="view" id="p-detail">
+        <div class="topbar"><div class="topbar-inner"><button class="back-btn" onclick="goTo('p-home')"><i class="ti ti-arrow-left" style="font-size:15px"></i> Voltar</button><h2>Detalhes</h2></div></div>
+        <div class="scroll">
+          <div class="card" style="margin-bottom:10px">
+            <div style="padding:14px;border-bottom:1px solid var(--pp-border)">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                <div>
+                  <div style="font-size:11px;color:var(--pp-text-muted);margin-bottom:3px">Hospedagem · Comercial</div>
+                  <div style="font-size:17px;font-weight:700;color:var(--pp-text)">Hospedagem — São Paulo</div>
+                  <div style="font-size:22px;font-weight:700;color:var(--pp-blue);margin-top:4px">R$ 890,00</div>
+                </div>
+                <span class="badge badge-pending" style="margin-top:4px">Em análise</span>
+              </div>
+            </div>
+            <div>
+              <div class="detail-row"><span class="detail-key">Data da despesa</span><span class="detail-val">05/06/2025</span></div>
+              <div class="detail-row"><span class="detail-key">Solicitante</span><span class="detail-val">Maria Santos</span></div>
+              <div class="detail-row"><span class="detail-key">Gestor responsável</span><span class="detail-val">Carlos Mendes</span></div>
+              <div class="detail-row"><span class="detail-key">Comprovantes</span><span class="detail-val" style="color:var(--pp-blue)">2 arquivos</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Acompanhamento</h3></div>
+            <div class="card-body">
+              <div class="tl-wrap">
+                <div class="tl-item"><div class="tl-left"><div class="tl-dot tl-dot-done"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title">Criada</div><div class="tl-date">05/06/2025 14:32</div></div></div>
+                <div class="tl-item"><div class="tl-left"><div class="tl-dot tl-dot-done"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title">Enviada para análise</div><div class="tl-sub">Gestor: Carlos Mendes</div><div class="tl-date">05/06/2025 14:33</div></div></div>
+                <div class="tl-item"><div class="tl-left"><div class="tl-dot tl-dot-active"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title" style="color:var(--pp-blue)">Em análise pelo gestor</div><div class="tl-sub">Aguardando revisão</div></div></div>
+                <div class="tl-item"><div class="tl-left"><div class="tl-dot tl-dot-pending"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title" style="color:var(--pp-text-subtle)">Aprovação financeira</div></div></div>
+                <div class="tl-item"><div class="tl-left"><div class="tl-dot tl-dot-pending"></div></div><div class="tl-content"><div class="tl-title" style="color:var(--pp-text-subtle)">Pagamento realizado</div></div></div>
+              </div>
+            </div>
+          </div>
+          <div style="height:14px"></div>
+        </div>
+      </div>
+
+      <!-- NOTIF APPROVED -->
+      <div class="view" id="p-notif-approved">
+        <div class="topbar"><div class="topbar-inner"><button class="back-btn" onclick="goTo('p-home')"><i class="ti ti-arrow-left" style="font-size:15px"></i> Voltar</button><h2>Status</h2></div></div>
+        <div class="scroll">
+          <div class="card" style="padding:20px 16px;text-align:center;margin-bottom:10px">
+            <div class="notif-icon notif-icon-ok"><i class="ti ti-circle-check"></i></div>
+            <div class="notif-title">Reembolso aprovado!</div>
+            <div class="notif-sub">Aprovado por Carlos Mendes em 03/06/2025. Pagamento no próximo ciclo.</div>
+          </div>
+          <div class="card">
+            <div class="detail-row"><span class="detail-key">Solicitação</span><span class="detail-val">Transporte — Cliente BH</span></div>
+            <div class="detail-row"><span class="detail-key">Valor aprovado</span><span class="detail-val" style="color:var(--pp-green)">R$ 245,00</span></div>
+            <div class="detail-row"><span class="detail-key">Aprovado por</span><span class="detail-val">Carlos Mendes</span></div>
+            <div class="detail-row"><span class="detail-key">Previsão pagamento</span><span class="detail-val">20/06/2025</span></div>
+          </div>
+          <div style="margin-top:10px"><button class="btn-secondary" onclick="goTo('p-home')">Voltar ao início</button></div>
+        </div>
+      </div>
+
+      <!-- NOTIF REJECTED -->
+      <div class="view" id="p-notif-rejected">
+        <div class="topbar"><div class="topbar-inner"><button class="back-btn" onclick="goTo('p-home')"><i class="ti ti-arrow-left" style="font-size:15px"></i> Voltar</button><h2>Status</h2></div></div>
+        <div class="scroll">
+          <div class="card" style="padding:20px 16px;text-align:center;margin-bottom:10px">
+            <div class="notif-icon notif-icon-fail"><i class="ti ti-circle-x"></i></div>
+            <div class="notif-title">Solicitação reprovada</div>
+            <div class="notif-sub">Sua solicitação foi analisada e não pôde ser aprovada.</div>
+          </div>
+          <div class="reason-card"><strong>Motivo da reprovação</strong><p>Comprovante fiscal não anexado. A política de Alimentação exige nota fiscal ou cupom para reembolso. Reenvie com o documento correto.</p></div>
+          <div class="card">
+            <div class="detail-row"><span class="detail-key">Solicitação</span><span class="detail-val">Alimentação — Reunião</span></div>
+            <div class="detail-row"><span class="detail-key">Valor</span><span class="detail-val">R$ 320,00</span></div>
+            <div class="detail-row"><span class="detail-key">Reprovado por</span><span class="detail-val">Carlos Mendes</span></div>
+          </div>
+          <div class="btn-row" style="margin-top:10px">
+            <button class="btn-ghost" onclick="goTo('p-home')">Voltar</button>
+            <button class="btn-primary" onclick="goTo('p-form')">Reenviar corrigido</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- APPROVER -->
+      <div class="view" id="p-approver">
+        <div class="topbar">
+          <div class="topbar-inner"><button class="back-btn" onclick="goTo('p-home')"><i class="ti ti-arrow-left" style="font-size:15px"></i> Voltar</button><h2>Aprovações</h2></div>
+          <div class="topbar-sub">3 pendentes · R$ 2.140,00 em aberto</div>
+        </div>
+        <div class="scroll">
+          <div class="approver-row">
+            <div class="approver-row-top"><div><div class="approver-row-name">João Ferreira · Treinamento</div><div class="approver-row-title">Power BI Professional</div></div><span style="font-size:15px;font-weight:700;color:var(--pp-text)">R$ 850</span></div>
+            <div class="approver-row-meta"><span><i class="ti ti-calendar" style="font-size:12px"></i> 02/06/2025</span><span><i class="ti ti-paperclip" style="font-size:12px"></i> 1 comprovante</span><span><i class="ti ti-clock" style="font-size:12px"></i> 4 dias</span></div>
+            <div class="approver-row-actions" id="pa1-actions">
+              <button class="app-action-btn app-action-approve" onclick="pApprove('pa1')"><i class="ti ti-check"></i> Aprovar</button>
+              <button class="app-action-btn app-action-reject" onclick="goTo('p-notif-rejected')"><i class="ti ti-x"></i> Reprovar</button>
+            </div>
+          </div>
+          <div class="approver-row">
+            <div class="approver-row-top"><div><div class="approver-row-name">Ana Lima · Hospedagem</div><div class="approver-row-title">Hotel SP — Evento Cliente</div></div><span style="font-size:15px;font-weight:700;color:var(--pp-text)">R$ 940</span></div>
+            <div class="approver-row-meta"><span><i class="ti ti-calendar" style="font-size:12px"></i> 04/06/2025</span><span><i class="ti ti-paperclip" style="font-size:12px"></i> 2 comprovantes</span><span><i class="ti ti-clock" style="font-size:12px"></i> 2 dias</span></div>
+            <div class="approver-row-actions" id="pa2-actions">
+              <button class="app-action-btn app-action-approve" onclick="pApprove('pa2')"><i class="ti ti-check"></i> Aprovar</button>
+              <button class="app-action-btn app-action-reject"><i class="ti ti-x"></i> Reprovar</button>
+            </div>
+          </div>
+          <div class="approver-row">
+            <div class="approver-row-top"><div><div class="approver-row-name">Pedro Costa · Transporte</div><div class="approver-row-title">Viagem cliente — RJ</div></div><span style="font-size:15px;font-weight:700;color:var(--pp-text)">R$ 350</span></div>
+            <div class="approver-row-meta"><span><i class="ti ti-calendar" style="font-size:12px"></i> 05/06/2025</span><span><i class="ti ti-paperclip" style="font-size:12px"></i> 3 comprovantes</span><span><i class="ti ti-clock" style="font-size:12px"></i> 1 dia</span></div>
+            <div class="approver-row-actions" id="pa3-actions">
+              <button class="app-action-btn app-action-approve" onclick="pApprove('pa3')"><i class="ti ti-check"></i> Aprovar</button>
+              <button class="app-action-btn app-action-reject"><i class="ti ti-x"></i> Reprovar</button>
+            </div>
+          </div>
+          <div style="height:14px"></div>
+        </div>
+      </div>
+
+      <div class="toast" id="p-toast"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function goTo(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active')}
+function filterPill(el){document.querySelectorAll('.pill-nav button').forEach(b=>b.classList.remove('active'));el.classList.add('active')}
+function togglePPolicy(){document.getElementById('p-policy').classList.toggle('open')}
+let pAttachCount=1;
+function pGoStep(n){
+  if(n===2){
+    const t=document.getElementById('pf-title').value.trim(),c=document.getElementById('pf-cat').value,v=document.getElementById('pf-value').value;
+    document.getElementById('perr-title').style.display=t?'none':'flex';document.getElementById('pf-title').classList.toggle('error',!t);
+    document.getElementById('perr-cat').style.display=c?'none':'flex';document.getElementById('pf-cat').classList.toggle('error',!c);
+    document.getElementById('perr-value').style.display=(v&&parseFloat(v)>0)?'none':'flex';document.getElementById('pf-value').classList.toggle('error',!(v&&parseFloat(v)>0));
+    if(!t||!c||!(v&&parseFloat(v)>0))return;
+  }
+  [1,2,3].forEach(i=>{const s=document.getElementById('pf-step'+i);if(s)s.style.display=(i===n)?'block':'none'});
+  [1,2,3].forEach(i=>{
+    const circle=document.getElementById('ps'+i),lbl=document.getElementById('psl'+i);
+    if(!circle)return;
+    circle.className='step-circle'+(i<n?' done':i===n?' active':'');
+    if(lbl){lbl.className='step-lbl'+(i===n?' active':'')}
+    if(i<n)circle.innerHTML='<i class="ti ti-check" style="font-size:11px"></i>';else circle.textContent=i;
+  });
+  [1,2].forEach(i=>{const l=document.getElementById('pline'+i);if(l)l.className='step-line'+(n>i?' done':'')});
+}
+function pAddAttach(){pAttachCount++;const names=['Nota_fiscal.pdf','Recibo_hotel.pdf','Screenshot_pagamento.jpg','Certificado.pdf'];const el=document.createElement('div');el.className='attach-item';el.innerHTML=`<i class="ti ti-file-text"></i> ${names[pAttachCount%names.length]} <button class="attach-remove" onclick="this.closest('.attach-item').remove()"><i class="ti ti-x"></i></button>`;document.getElementById('p-attach-list').appendChild(el);showPToast('Arquivo adicionado')}
+function pSubmit(){showPToast('Solicitação enviada com sucesso!');setTimeout(()=>goTo('p-home'),1200)}
+function pApprove(id){const el=document.getElementById(id+'-actions');if(el){el.outerHTML='<div class="approved-state"><i class="ti ti-circle-check"></i> Aprovado com sucesso</div>'}showPToast('Solicitação aprovada!')}
+function showPToast(msg){const t=document.getElementById('p-toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+</script>
+</body>
+</html>
