@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ODN Reembolso - Protótipo TO BE</title>
+<style>
+  :root{
+    --brand:#0F6CBD;
+    --brand-hover:#115EA3;
+    --brand-pressed:#0E4F8F;
+    --brand-light:#EBF3FC;
+    --neutral-bg:#FAFAFA;
+    --neutral-surface:#FFFFFF;
+    --neutral-border:#E1E1E1;
+    --neutral-border-strong:#D1D1D1;
+    --text-primary:#242424;
+    --text-secondary:#616161;
+    --text-tertiary:#8A8886;
+    --danger:#D13438;
+    --danger-bg:#FDF2F2;
+    --warning:#C19400;
+    --warning-bg:#FFF8E1;
+    --success:#107C10;
+    --success-bg:#EBF8EB;
+    --info:#0F6CBD;
+    --info-bg:#EBF3FC;
+    --neutral-badge:#F3F2F1;
+    --neutral-badge-text:#605E5C;
+    --sla-bg:#F3F2F1;
+    --sla-text:#797775;
+    --radius-sm:4px;
+    --radius-md:6px;
+    --radius-lg:8px;
+    --shadow-sm:0 1px 2px rgba(0,0,0,0.08);
+    --shadow-md:0 2px 8px rgba(0,0,0,0.10);
+    --header-black:#000000;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    font-family:'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+    background:var(--neutral-bg);
+    color:var(--text-primary);
+    -webkit-font-smoothing:antialiased;
+  }
+  #app{
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    background:var(--neutral-surface);
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    box-shadow:0 0 24px rgba(0,0,0,0.06);
+  }
+  @media (min-width:600px){
+    #app{ max-width:560px; margin-top:16px; margin-bottom:16px; border-radius:var(--radius-lg); min-height:calc(100vh - 32px); overflow:hidden;}
+  }
+
+  /* HEADER */
+  .top-header{
+    background:var(--header-black);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 14px;
+    flex-shrink:0;
+  }
+  .top-header .odn-badge{
+    background:var(--brand);
+    color:#fff;
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:0.5px;
+    padding:5px 9px;
+    border-radius:var(--radius-sm);
+  }
+  .top-header .title{
+    font-size:16px;
+    font-weight:600;
+    flex:1;
+  }
+  .top-header .elogroup{
+    font-size:11px;
+    color:#C7C7C7;
+    font-weight:600;
+    letter-spacing:0.5px;
+    display:flex;
+    align-items:center;
+    gap:4px;
+  }
+
+  /* APP BAR (sub-header com voltar) */
+  .app-bar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 14px;
+    border-bottom:1px solid var(--neutral-border);
+    background:var(--neutral-surface);
+    flex-shrink:0;
+  }
+  .app-bar .back-btn{
+    width:32px;height:32px;
+    border-radius:50%;
+    border:none;
+    background:transparent;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    color:var(--text-primary);
+    font-size:18px;
+  }
+  .app-bar .back-btn:hover{ background:var(--neutral-bg); }
+  .app-bar .app-bar-title{
+    font-size:15px;
+    font-weight:600;
+  }
+
+  /* CONTENT */
+  .view{
+    flex:1;
+    display:none;
+    flex-direction:column;
+    overflow-y:auto;
+  }
+  .view.active{ display:flex; }
+  .content-pad{ padding:14px; flex:1; }
+
+  /* FILTERS */
+  .filters{
+    padding:12px 14px;
+    border-bottom:1px solid var(--neutral-border);
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .search-input, select.filter-select{
+    width:100%;
+    padding:9px 12px;
+    border:1px solid var(--neutral-border-strong);
+    border-radius:var(--radius-md);
+    font-size:13px;
+    font-family:inherit;
+    color:var(--text-primary);
+    background:#fff;
+  }
+  .search-input:focus, select.filter-select:focus, input:focus, textarea:focus{
+    outline:none;
+    border-color:var(--brand);
+    box-shadow:0 0 0 1px var(--brand);
+  }
+  .filter-row{ display:flex; gap:8px; }
+  .filter-row select{ flex:1; min-width:0; }
+  .clear-filters-link{
+    align-self:flex-end;
+    font-size:12px;
+    color:var(--brand);
+    font-weight:600;
+    cursor:pointer;
+    background:none;
+    border:none;
+  }
+
+  /* LIST CARDS */
+  .list-container{ padding:8px 10px; display:flex; flex-direction:column; gap:8px;}
+  .req-card{
+    border:1px solid var(--neutral-border);
+    border-radius:var(--radius-lg);
+    padding:12px;
+    background:#fff;
+    box-shadow:var(--shadow-sm);
+    cursor:pointer;
+    position:relative;
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+  }
+  .req-card:active{ background:var(--neutral-bg); }
+  .req-card .stripe{
+    width:4px;
+    border-radius:4px;
+    align-self:stretch;
+    flex-shrink:0;
+  }
+  .req-card .req-body{ flex:1; min-width:0; }
+  .req-card .req-top-row{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:8px;
+  }
+  .req-card .req-code{ font-weight:700; font-size:13px; color:var(--text-primary); }
+  .req-card .req-value{ font-weight:700; font-size:14px; color:var(--text-primary); white-space:nowrap; }
+  .req-card .req-meta{ font-size:12px; color:var(--text-secondary); margin-top:2px; }
+  .req-card .req-cc{ font-size:12px; color:var(--text-secondary); margin-top:4px; line-height:1.4; }
+  .req-card .req-bottom-row{
+    display:flex; justify-content:space-between; align-items:center; margin-top:8px; gap:6px; flex-wrap:wrap;
+  }
+  .chevron{ color:var(--text-tertiary); font-size:16px; flex-shrink:0; align-self:center; }
+
+  /* BADGES */
+  .badge{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    padding:3px 9px;
+    border-radius:12px;
+    font-size:11px;
+    font-weight:600;
+    white-space:nowrap;
+  }
+  .badge-draft{ background:var(--neutral-badge); color:var(--neutral-badge-text); }
+  .badge-pending-review{ background:var(--info-bg); color:var(--info); }
+  .badge-reanalysis{ background:var(--warning-bg); color:var(--warning); }
+  .badge-approved{ background:var(--success-bg); color:var(--success); }
+  .badge-rejected-manager{ background:var(--danger-bg); color:var(--danger); }
+  .badge-rejected-sla{ background:var(--sla-bg); color:var(--sla-text); border:1px solid var(--neutral-border-strong); }
+  .badge-outofbase{ background:#fff; color:var(--warning); border:1px solid var(--warning); }
+  .badge-sm{ font-size:10px; padding:2px 7px; }
+
+  .stripe-draft{ background:var(--neutral-border-strong); }
+  .stripe-pending-review{ background:var(--info); }
+  .stripe-reanalysis{ background:var(--warning); }
+  .stripe-approved{ background:var(--success); }
+  .stripe-rejected-manager{ background:var(--danger); }
+  .stripe-rejected-sla{ background:var(--sla-text); }
+
+  .empty-state{
+    text-align:center;
+    padding:60px 20px;
+    color:var(--text-tertiary);
+    font-size:13px;
+  }
+
+  /* FORMS */
+  .field{ margin-bottom:16px; }
+  .field label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--text-primary);
+    margin-bottom:5px;
+  }
+  .field label .req-star{ color:var(--danger); margin-left:2px;}
+  .field input[type=text], .field input[type=number], .field input[type=date], .field select, .field textarea{
+    width:100%;
+    padding:10px 12px;
+    border:1px solid var(--neutral-border-strong);
+    border-radius:var(--radius-md);
+    font-size:14px;
+    font-family:inherit;
+    color:var(--text-primary);
+    background:#fff;
+  }
+  .field textarea{ resize:vertical; min-height:60px; }
+  .field .hint{ font-size:11px; color:var(--text-tertiary); margin-top:4px; }
+  .field-row{ display:flex; gap:10px; }
+  .field-row .field{ flex:1; min-width:0; }
+
+  .policy-warning{
+    display:none;
+    margin-top:8px;
+    background:var(--warning-bg);
+    border:1px solid #F2D88B;
+    border-radius:var(--radius-md);
+    padding:9px 10px;
+    font-size:12px;
+    color:#7A5C00;
+    gap:6px;
+    align-items:flex-start;
+  }
+  .policy-warning.show{ display:flex; }
+  .policy-warning .ic{ flex-shrink:0; font-size:14px; }
+
+  .section-label{
+    font-size:13px;
+    font-weight:700;
+    color:var(--text-primary);
+    margin:18px 0 10px 0;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .project-banner{
+    background:var(--brand-light);
+    border:1px solid #C7E0F4;
+    border-radius:var(--radius-md);
+    padding:10px 12px;
+    margin-bottom:14px;
+    font-size:13px;
+  }
+  .project-banner .label-sm{ font-size:11px; color:var(--brand); font-weight:700; text-transform:uppercase; letter-spacing:0.3px; }
+  .project-banner .val{ margin-top:2px; font-weight:600; color:var(--text-primary); }
+
+  /* EXPENSE LIST ITEMS in request form */
+  .expense-item{
+    border:1px solid var(--neutral-border);
+    border-radius:var(--radius-md);
+    padding:10px 12px;
+    margin-bottom:8px;
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    background:#fff;
+  }
+  .expense-item .exp-icon{
+    width:36px;height:36px;border-radius:var(--radius-sm);
+    background:var(--neutral-bg);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;font-size:16px;
+    border:1px solid var(--neutral-border);
+  }
+  .expense-item .exp-body{ flex:1; min-width:0; }
+  .expense-item .exp-top{ display:flex; justify-content:space-between; gap:8px; }
+  .expense-item .exp-nature{ font-size:13px; font-weight:600; color:var(--text-primary); }
+  .expense-item .exp-value{ font-size:13px; font-weight:700; }
+  .expense-item .exp-meta{ font-size:11px; color:var(--text-secondary); margin-top:2px; }
+  .expense-item .exp-actions{ display:flex; gap:6px; margin-top:6px; }
+  .icon-btn{
+    border:none;background:none;cursor:pointer;
+    width:28px;height:28px;border-radius:var(--radius-sm);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--text-secondary);font-size:14px;
+  }
+  .icon-btn:hover{ background:var(--neutral-bg); }
+  .icon-btn.danger:hover{ background:var(--danger-bg); color:var(--danger); }
+
+  .add-expense-card{
+    border:1.5px dashed var(--neutral-border-strong);
+    border-radius:var(--radius-md);
+    padding:14px;
+    text-align:center;
+    color:var(--brand);
+    font-weight:600;
+    font-size:13px;
+    cursor:pointer;
+    background:var(--brand-light);
+    margin-bottom:8px;
+  }
+  .add-expense-card:hover{ background:#DCEBFB; }
+
+  /* BUTTONS */
+  .btn{
+    font-family:inherit;
+    font-size:14px;
+    font-weight:600;
+    padding:11px 18px;
+    border-radius:var(--radius-md);
+    border:1px solid transparent;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+  }
+  .btn-primary{ background:var(--brand); color:#fff; }
+  .btn-primary:hover{ background:var(--brand-hover); }
+  .btn-primary:active{ background:var(--brand-pressed); }
+  .btn-primary:disabled{ background:#C8C6C4; cursor:not-allowed; }
+  .btn-secondary{ background:#fff; color:var(--brand); border:1px solid var(--brand); }
+  .btn-secondary:hover{ background:var(--brand-light); }
+  .btn-ghost{ background:transparent; color:var(--text-secondary); border:1px solid var(--neutral-border-strong); }
+  .btn-ghost:hover{ background:var(--neutral-bg); }
+  .btn-danger{ background:var(--danger); color:#fff; }
+  .btn-danger:hover{ background:#B92B2E; }
+  .btn-block{ width:100%; }
+  .btn-sm{ padding:7px 12px; font-size:12px; }
+
+  /* STICKY FOOTER */
+  .sticky-footer{
+    position:sticky;
+    bottom:0;
+    background:#fff;
+    border-top:1px solid var(--neutral-border);
+    padding:12px 14px;
+    display:flex;
+    gap:10px;
+    flex-shrink:0;
+  }
+  .sticky-footer .btn{ flex:1; }
+  .sticky-footer.single .btn{ flex:none; width:100%; }
+
+  .fab-add{
+    position:fixed;
+    bottom:84px;
+    right:calc(50% - 240px + 20px);
+    width:52px;height:52px;
+    border-radius:50%;
+    background:var(--brand);
+    color:#fff;
+    border:none;
+    box-shadow:var(--shadow-md);
+    font-size:24px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    z-index:50;
+  }
+  @media (max-width:480px){
+    .fab-add{ right:20px; }
+  }
+
+  /* MODAL */
+  .modal-overlay{
+    position:fixed; inset:0;
+    background:rgba(0,0,0,0.45);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    z-index:200;
+  }
+  .modal-overlay.active{ display:flex; }
+  @media (min-width:600px){
+    .modal-overlay{ align-items:center; }
+  }
+  .modal-box{
+    background:#fff;
+    width:100%;
+    max-width:480px;
+    border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow:0 -4px 24px rgba(0,0,0,0.18);
+    max-height:92vh;
+    overflow-y:auto;
+    animation:slideUp 0.18s ease-out;
+  }
+  @media (min-width:600px){
+    .modal-box{ border-radius:var(--radius-lg); animation:fadeIn 0.15s ease-out; }
+  }
+  @keyframes slideUp{ from{ transform:translateY(24px); opacity:0;} to{ transform:translateY(0); opacity:1;} }
+  @keyframes fadeIn{ from{ opacity:0;} to{ opacity:1;} }
+  .modal-header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 16px;
+    border-bottom:1px solid var(--neutral-border);
+  }
+  .modal-header h3{ margin:0; font-size:15px; font-weight:700; }
+  .modal-close{
+    border:none;background:none;font-size:18px;color:var(--text-secondary);cursor:pointer;
+    width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  }
+  .modal-close:hover{ background:var(--neutral-bg); }
+  .modal-body{ padding:16px; }
+  .modal-footer{
+    display:flex; gap:10px; padding:14px 16px; border-top:1px solid var(--neutral-border);
+  }
+  .modal-footer .btn{ flex:1; }
+
+  .confirm-icon-wrap{
+    width:48px;height:48px;border-radius:50%;
+    background:var(--danger-bg);
+    display:flex;align-items:center;justify-content:center;
+    font-size:22px;color:var(--danger);
+    margin:0 auto 12px auto;
+  }
+  .confirm-text{ text-align:center; font-size:13px; color:var(--text-secondary); line-height:1.5; }
+  .confirm-text strong{ color:var(--text-primary); }
+
+  /* PHOTO CAPTURE STEP */
+  .capture-zone{
+    border:1.5px dashed var(--neutral-border-strong);
+    border-radius:var(--radius-lg);
+    padding:32px 16px;
+    text-align:center;
+    background:var(--neutral-bg);
+  }
+  .capture-zone .cap-icon{
+    width:56px;height:56px;border-radius:50%;
+    background:var(--brand-light);
+    color:var(--brand);
+    display:flex;align-items:center;justify-content:center;
+    font-size:26px;
+    margin:0 auto 12px auto;
+  }
+  .capture-zone h4{ margin:0 0 4px 0; font-size:14px; }
+  .capture-zone p{ margin:0 0 18px 0; font-size:12px; color:var(--text-secondary); }
+  .capture-actions{ display:flex; flex-direction:column; gap:10px; max-width:280px; margin:0 auto; }
+
+  .attachment-list{ display:flex; flex-direction:column; gap:8px; margin-top:14px; }
+  .attachment-chip{
+    display:flex; align-items:center; gap:10px;
+    border:1px solid var(--neutral-border);
+    border-radius:var(--radius-md);
+    padding:8px 10px;
+    background:#fff;
+  }
+  .attachment-chip .thumb{
+    width:38px;height:38px;border-radius:var(--radius-sm);
+    background:var(--brand-light);
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;color:var(--brand);
+    flex-shrink:0;
+    overflow:hidden;
+  }
+  .attachment-chip .thumb img{ width:100%;height:100%;object-fit:cover; }
+  .attachment-chip .fname{ font-size:12px; font-weight:600; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .attachment-chip .fsize{ font-size:10px; color:var(--text-tertiary); }
+
+  .step-indicator{
+    display:flex; align-items:center; gap:6px; padding:10px 14px 0 14px; font-size:11px; color:var(--text-tertiary); font-weight:600;
+  }
+  .step-indicator .dot{ width:7px;height:7px;border-radius:50%;background:var(--neutral-border-strong); }
+  .step-indicator .dot.active{ background:var(--brand); }
+  .step-indicator .seg{ flex:1; height:2px; background:var(--neutral-border); }
+  .step-indicator .seg.active{ background:var(--brand); }
+
+  /* Detail screens */
+  .detail-banner{
+    border-radius:var(--radius-lg);
+    padding:14px;
+    margin-bottom:16px;
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+  }
+  .detail-banner.banner-manager{ background:var(--danger-bg); border:1px solid #F3C4C5; }
+  .detail-banner.banner-sla{ background:var(--sla-bg); border:1px solid var(--neutral-border-strong); }
+  .detail-banner.banner-review{ background:var(--info-bg); border:1px solid #C7E0F4; }
+  .detail-banner .db-icon{ font-size:20px; flex-shrink:0; margin-top:1px; }
+  .detail-banner.banner-manager .db-icon{ color:var(--danger); }
+  .detail-banner.banner-sla .db-icon{ color:var(--sla-text); }
+  .detail-banner.banner-review .db-icon{ color:var(--info); }
+  .detail-banner .db-title{ font-size:13px; font-weight:700; margin-bottom:3px; }
+  .detail-banner.banner-manager .db-title{ color:var(--danger); }
+  .detail-banner.banner-sla .db-title{ color:var(--sla-text); }
+  .detail-banner.banner-review .db-title{ color:var(--info); }
+  .detail-banner .db-text{ font-size:12px; color:var(--text-secondary); line-height:1.5; }
+  .detail-banner .db-comment{
+    margin-top:8px;
+    background:#fff;
+    border-radius:var(--radius-sm);
+    padding:8px 10px;
+    font-size:12px;
+    color:var(--text-primary);
+    border:1px solid rgba(0,0,0,0.06);
+    font-style:italic;
+  }
+
+  .info-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .info-grid .ig-item .ig-label{ font-size:11px; color:var(--text-tertiary); font-weight:600; text-transform:uppercase; letter-spacing:0.3px; }
+  .info-grid .ig-item .ig-value{ font-size:13px; font-weight:600; margin-top:2px; }
+
+  .toast{
+    position:fixed;
+    bottom:90px;
+    left:50%;
+    transform:translateX(-50%) translateY(10px);
+    background:#242424;
+    color:#fff;
+    padding:10px 18px;
+    border-radius:var(--radius-md);
+    font-size:13px;
+    box-shadow:var(--shadow-md);
+    opacity:0;
+    pointer-events:none;
+    transition:all 0.25s ease;
+    z-index:300;
+    white-space:nowrap;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .draft-tag{
+    display:inline-flex;align-items:center;gap:4px;
+    background:var(--neutral-badge);
+    color:var(--neutral-badge-text);
+    font-size:10px;font-weight:700;
+    padding:2px 7px;border-radius:10px;
+    margin-left:6px;
+  }
+
+  ::-webkit-scrollbar{ width:6px; }
+  ::-webkit-scrollbar-thumb{ background:#D1D1D1; border-radius:3px; }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ============ VIEW: LISTA DE SOLICITAÇÕES ============ -->
+  <section class="view active" id="view-lista">
+    <div class="top-header">
+      <div class="odn-badge">ODN</div>
+      <div class="title">Reembolsos Solicitados</div>
+      <div class="elogroup">ELOGROUP</div>
+    </div>
+    <div class="filters">
+      <input class="search-input" placeholder="Pesquisar por código ou centro de custo" id="searchInput" oninput="renderLista()">
+      <div class="filter-row">
+        <select class="filter-select" id="filterSituacao" onchange="renderLista()">
+          <option value="">Filtrar por situação</option>
+          <option value="rascunho">Rascunho</option>
+          <option value="pendente_revisao">Pendente revisão</option>
+          <option value="necessario_reanalise">Necessário reanálise</option>
+          <option value="aprovado">Aprovado</option>
+          <option value="reprovado_gestor">Reprovado pelo gestor</option>
+          <option value="reprovado_sla">Reprovado por SLA expirado</option>
+        </select>
+      </div>
+      <button class="clear-filters-link" onclick="clearFilters()">Limpar filtros</button>
+    </div>
+    <div class="list-container" id="listaContainer"></div>
+    <div style="height:90px;"></div>
+    <button class="fab-add" onclick="abrirNovaSolicitacao()" title="Nova solicitação">+</button>
+    <div class="sticky-footer" style="position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;">
+      <button class="btn btn-ghost btn-sm" onclick="abrirSimulacaoAnalista()" style="flex:1;">🧪 Simular: Analista pede ajuste</button>
+    </div>
+  </section>
+
+  <!-- ============ VIEW: NOVA SOLICITAÇÃO ============ -->
+  <section class="view" id="view-nova-solicitacao">
+    <div class="top-header">
+      <div class="odn-badge">ODN</div>
+      <div class="title">Reembolso</div>
+      <div class="elogroup">ELOGROUP</div>
+    </div>
+    <div class="app-bar">
+      <button class="back-btn" onclick="goToLista()">‹</button>
+      <div class="app-bar-title" id="solicitacaoTitulo">Nova Solicitação</div>
+    </div>
+    <div class="content-pad">
+      <div class="field">
+        <label>Projeto / Centro de Custo <span class="req-star">*</span></label>
+        <select id="projetoSolicitacao" onchange="onProjetoChange()">
+          <option value="">Selecione o Centro de Custo</option>
+          <option value="P&C | Formação de Times — 03.24.15.001.014">P&C | Formação de Times — 03.24.15.001.014</option>
+          <option value="Mosaic | SalesOps 2B — 10.25.02.216.019">Mosaic | SalesOps 2B — 10.25.02.216.019</option>
+          <option value="Supply | APS Optimization — 11.10.04.302.221">Supply | APS Optimization — 11.10.04.302.221</option>
+        </select>
+      </div>
+
+      <div id="pendingReviewBanner"></div>
+
+      <div class="section-label">
+        <span>Despesas</span>
+        <span id="despesasCount" style="color:var(--text-tertiary);font-weight:600;font-size:12px;"></span>
+      </div>
+      <div id="despesasContainer"></div>
+      <div class="add-expense-card" onclick="abrirNovaDespesa()">+ Adicionar Despesa</div>
+    </div>
+    <div class="sticky-footer">
+      <button class="btn btn-ghost" onclick="salvarRascunhoSolicitacao()">Salvar rascunho</button>
+      <button class="btn btn-primary" onclick="enviarSolicitacao()">Solicitar</button>
+    </div>
+  </section>
+
+  <!-- ============ VIEW: NOVA DESPESA - STEP 1 (CAPTURA) ============ -->
+  <section class="view" id="view-despesa-step1">
+    <div class="top-header">
+      <div class="odn-badge">ODN</div>
+      <div class="title">Nova Despesa</div>
+      <div class="elogroup">ELOGROUP</div>
+    </div>
+    <div class="app-bar">
+      <button class="back-btn" onclick="cancelarNovaDespesa()">‹</button>
+      <div class="app-bar-title">Comprovante</div>
+    </div>
+    <div class="step-indicator">
+      <div class="dot active"></div><div class="seg active"></div><div class="dot"></div>
+    </div>
+    <div class="content-pad">
+      <div class="capture-zone">
+        <div class="cap-icon">📷</div>
+        <h4>Anexe o comprovante da despesa</h4>
+        <p>Tire uma foto ou selecione arquivos da galeria. Você pode anexar mais de um comprovante.</p>
+        <div class="capture-actions">
+          <button class="btn btn-primary btn-block" onclick="simularCaptura('camera')">📷 Tirar foto</button>
+          <button class="btn btn-secondary btn-block" onclick="simularCaptura('galeria')">🖼 Selecionar da galeria</button>
+        </div>
+      </div>
+      <div class="attachment-list" id="attachmentListStep1"></div>
+    </div>
+    <div class="sticky-footer">
+      <button class="btn btn-ghost" onclick="cancelarNovaDespesa()">Cancelar</button>
+      <button class="btn btn-primary" id="btnContinuarStep1" onclick="irParaStep2()" disabled>Continuar</button>
+    </div>
+  </section>
+
+  <!-- ============ VIEW: NOVA DESPESA - STEP 2 (FORMULÁRIO) ============ -->
+  <section class="view" id="view-despesa-step2">
+    <div class="top-header">
+      <div class="odn-badge">ODN</div>
+      <div class="title">Nova Despesa</div>
+      <div class="elogroup">ELOGROUP</div>
+    </div>
+    <div class="app-bar">
+      <button class="back-btn" onclick="voltarParaStep1()">‹</button>
+      <div class="app-bar-title">Detalhes da despesa</div>
+    </div>
+    <div class="step-indicator">
+      <div class="dot active"></div><div class="seg active"></div><div class="dot active"></div>
+    </div>
+    <div class="content-pad">
+
+      <div class="project-banner">
+        <div class="label-sm">Projeto / Centro de custo</div>
+        <div class="val" id="projetoPrefilled">—</div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Valor <span class="req-star">*</span></label>
+          <input type="number" id="despesaValor" placeholder="0,00" oninput="checarPolitica()">
+        </div>
+        <div class="field">
+          <label>Data da despesa <span class="req-star">*</span></label>
+          <input type="date" id="despesaData">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Natureza <span class="req-star">*</span></label>
+        <select id="despesaNatureza" onchange="checarPolitica()">
+          <option value="">Selecione a natureza</option>
+          <option value="Alimentação" data-limite="120">Alimentação</option>
+          <option value="Deslocamento terrestre" data-limite="250">Deslocamento terrestre</option>
+          <option value="Hospedagem" data-limite="450">Hospedagem</option>
+          <option value="Outros custos de projeto (especificar)" data-limite="200">Outros custos de projeto (especificar)</option>
+        </select>
+        <div class="policy-warning" id="policyWarning">
+          <span class="ic">⚠️</span>
+          <span id="policyWarningText"></span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Reembolsável pelo cliente <span class="req-star">*</span></label>
+        <select id="despesaReembolsavel">
+          <option value="">Selecione</option>
+          <option value="Sim">Sim</option>
+          <option value="Não">Não</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Comprovantes anexados</label>
+        <div class="attachment-list" id="attachmentListStep2"></div>
+      </div>
+
+      <div class="field">
+        <label>Comentários</label>
+        <textarea id="despesaComentarios" placeholder="Observações adicionais (opcional)"></textarea>
+      </div>
+    </div>
+    <div class="sticky-footer">
+      <button class="btn btn-ghost" onclick="abrirConfirmarLimpar()">Limpar</button>
+      <button class="btn btn-secondary" onclick="salvarDespesaRascunho()">Salvar rascunho</button>
+      <button class="btn btn-primary" onclick="adicionarDespesa()">Adicionar</button>
+    </div>
+  </section>
+
+  <!-- ============ VIEW: DETALHE REPROVADO ============ -->
+  <section class="view" id="view-detalhe-reprovado">
+    <div class="top-header">
+      <div class="odn-badge">ODN</div>
+      <div class="title">Reembolso</div>
+      <div class="elogroup">ELOGROUP</div>
+    </div>
+    <div class="app-bar">
+      <button class="back-btn" onclick="goToLista()">‹</button>
+      <div class="app-bar-title">Detalhe da solicitação</div>
+    </div>
+    <div class="content-pad">
+      <div id="detalheReprovadoBanner"></div>
+      <div class="info-grid">
+        <div class="ig-item"><div class="ig-label">ID da solicitação</div><div class="ig-value" id="detReprId">—</div></div>
+        <div class="ig-item"><div class="ig-label">Data</div><div class="ig-value" id="detReprData">—</div></div>
+        <div class="ig-item"><div class="ig-label">Projeto</div><div class="ig-value" id="detReprProjeto">—</div></div>
+        <div class="ig-item"><div class="ig-label">Valor total</div><div class="ig-value" id="detReprValor">—</div></div>
+      </div>
+      <div class="section-label"><span>Despesas</span></div>
+      <div id="detReprDespesas"></div>
+    </div>
+    <div class="sticky-footer single">
+      <button class="btn btn-primary btn-block" onclick="editarSolicitacaoReprovada()">✎ Editar e reenviar solicitação</button>
+    </div>
+  </section>
+
+  <!-- ============ VIEW: DETALHE PENDENTE REVISÃO ============ -->
+  <section class="view" id="view-detalhe-pendente-revisao">
+    <div class="top-header">
+      <div class="odn-badge">ODN</div>
+      <div class="title">Reembolso</div>
+      <div class="elogroup">ELOGROUP</div>
+    </div>
+    <div class="app-bar">
+      <button class="back-btn" onclick="goToLista()">‹</button>
+      <div class="app-bar-title">Detalhe da solicitação</div>
+    </div>
+    <div class="content-pad">
+      <div class="detail-banner banner-review">
+        <div class="db-icon">↩</div>
+        <div>
+          <div class="db-title">Pendente revisão</div>
+          <div class="db-text">O analista financeiro devolveu esta solicitação solicitando ajustes antes de continuar a análise.</div>
+          <div class="db-comment" id="comentarioAnalistaTexto">—</div>
+        </div>
+      </div>
+      <div class="info-grid">
+        <div class="ig-item"><div class="ig-label">ID da solicitação</div><div class="ig-value" id="detPendId">—</div></div>
+        <div class="ig-item"><div class="ig-label">Data</div><div class="ig-value" id="detPendData">—</div></div>
+        <div class="ig-item"><div class="ig-label">Projeto</div><div class="ig-value" id="detPendProjeto">—</div></div>
+        <div class="ig-item"><div class="ig-label">Valor total</div><div class="ig-value" id="detPendValor">—</div></div>
+      </div>
+      <div class="section-label"><span>Despesas</span></div>
+      <div id="detPendDespesas"></div>
+    </div>
+    <div class="sticky-footer single">
+      <button class="btn btn-primary btn-block" onclick="ajustarEReenviar()">✎ Ajustar e reenviar</button>
+    </div>
+  </section>
+
+</div>
+
+<!-- MODAL: CONFIRMAR LIMPAR -->
+<div class="modal-overlay" id="modalConfirmarLimpar">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Limpar formulário</h3>
+      <button class="modal-close" onclick="fecharModal('modalConfirmarLimpar')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-icon-wrap">⚠️</div>
+      <div class="confirm-text">Tem certeza que deseja limpar os dados preenchidos? <strong>Esta ação não pode ser desfeita</strong> e os anexos e campos desta despesa serão perdidos.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modalConfirmarLimpar')">Cancelar</button>
+      <button class="btn btn-danger" onclick="confirmarLimparDespesa()">Sim, limpar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: DEVOLVER PARA AJUSTE (simulação ação do analista) -->
+<div class="modal-overlay" id="modalAnalistaDevolver">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Simular: Analista devolve solicitação</h3>
+      <button class="modal-close" onclick="fecharModal('modalAnalistaDevolver')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px;color:var(--text-secondary);margin-top:0;">Esta ação simula a triagem do analista financeiro pedindo ajuste ao solicitante.</p>
+      <div class="field">
+        <label>Comentário do analista <span class="req-star">*</span></label>
+        <textarea id="comentarioAnalistaInput" placeholder="Ex: Por favor, anexe a nota fiscal legível da despesa #02."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modalAnalistaDevolver')">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmarDevolucaoAnalista()">Devolver solicitação</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===================== ESTADO DA APLICAÇÃO ===================== */
+let appState = {
+  solicitacoes: [
+    {
+      id: '#3664', data: '05/02/2026', projeto: 'Mosaic | SalesOps 2B — 10.25.02.216.019',
+      status: 'reprovado_gestor', motivoReprovacao: 'gestor',
+      comentarioGestor: 'Despesas de deslocamento sem comprovante de rota. Favor anexar trecho detalhado e revisar valor de alimentação acima da política.',
+      despesas: [
+        { ref:'#01', data:'26/01/2026', natureza:'Alimentação', valor:331.30, anexos:['nota_alimentacao.pdf'] },
+        { ref:'#02', data:'26/01/2026', natureza:'Deslocamento terrestre', valor:226.20, anexos:['recibo_uber.pdf'] }
+      ]
+    },
+    {
+      id: '#3588', data: '12/01/2026', projeto: 'Mosaic | SalesOps 2B — 10.25.02.216.019',
+      status: 'reprovado_sla',
+      despesas: [
+        { ref:'#01', data:'08/01/2026', natureza:'Hospedagem', valor:471.29, anexos:['hotel_nf.pdf'] }
+      ]
+    },
+    {
+      id: '#3702', data: '18/03/2026', projeto: 'P&C | Formação de Times — 03.24.15.001.014',
+      status: 'pendente_revisao',
+      comentarioAnalista: 'O comprovante da despesa #01 está ilegível. Por favor, anexe uma nova foto com o valor visível.',
+      despesas: [
+        { ref:'#01', data:'15/03/2026', natureza:'Alimentação', valor:88.00, anexos:['foto_recibo.jpg'] }
+      ]
+    },
+    {
+      id: '#3710', data: '20/03/2026', projeto: 'Supply | APS Optimization — 11.10.04.302.221',
+      status: 'necessario_reanalise',
+      despesas: [
+        { ref:'#01', data:'19/03/2026', natureza:'Deslocamento terrestre', valor:75.80, anexos:['comprovante.pdf'] }
+      ]
+    },
+    {
+      id: '#3500', data: '10/12/2025', projeto: 'Mosaic | SalesOps 2B — 10.25.02.216.019',
+      status: 'aprovado',
+      despesas: [
+        { ref:'#01', data:'05/12/2025', natureza:'Hospedagem', valor:455.16, anexos:['nf_hotel.pdf'] }
+      ]
+    },
+    {
+      id: '#3721', data: '25/03/2026', projeto: 'P&C | Formação de Times — 03.24.15.001.014',
+      status: 'rascunho',
+      despesas: [
+        { ref:'#01', data:'22/03/2026', natureza:'Alimentação', valor:45.00, anexos:[], isDraftExpense:true }
+      ]
+    }
+  ]
+};
+
+const statusMeta = {
+  rascunho: { label:'Rascunho', badgeClass:'badge-draft', stripeClass:'stripe-draft' },
+  pendente_revisao: { label:'Pendente revisão', badgeClass:'badge-pending-review', stripeClass:'stripe-pending-review' },
+  necessario_reanalise: { label:'Necessário reanálise', badgeClass:'badge-reanalysis', stripeClass:'stripe-reanalysis' },
+  aprovado: { label:'Aprovado', badgeClass:'badge-approved', stripeClass:'stripe-approved' },
+  reprovado_gestor: { label:'Reprovado pelo gestor', badgeClass:'badge-rejected-manager', stripeClass:'stripe-rejected-manager' },
+  reprovado_sla: { label:'Reprovado por SLA expirado', badgeClass:'badge-rejected-sla', stripeClass:'stripe-rejected-sla' }
+};
+
+let currentSolicitacaoDraft = null; // objeto em edição na tela "Nova solicitação"
+let currentExpenseDraft = null;     // objeto em edição no fluxo de despesa
+let currentDetailId = null;
+let editingExpenseIndex = null;
+
+/* ===================== HELPERS ===================== */
+function fmtMoeda(v){
+  return 'R$ ' + Number(v||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function abrirModal(id){ document.getElementById(id).classList.add('active'); }
+function fecharModal(id){ document.getElementById(id).classList.remove('active'); }
+
+/* ===================== VIEW: LISTA ===================== */
+function renderLista(){
+  const container = document.getElementById('listaContainer');
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const filtro = document.getElementById('filterSituacao').value;
+
+  let items = appState.solicitacoes.filter(s=>{
+    const matchSearch = !search || s.id.toLowerCase().includes(search) || s.projeto.toLowerCase().includes(search);
+    const matchFiltro = !filtro || s.status === filtro;
+    return matchSearch && matchFiltro;
+  });
+
+  if(items.length === 0){
+    container.innerHTML = '<div class="empty-state">Nenhuma solicitação encontrada.</div>';
+    return;
+  }
+
+  container.innerHTML = items.map(s=>{
+    const meta = statusMeta[s.status];
+    const total = s.despesas.reduce((acc,d)=>acc+Number(d.valor||0),0);
+    return `
+      <div class="req-card" onclick="onClickSolicitacao('${s.id}')">
+        <div class="stripe ${meta.stripeClass}"></div>
+        <div class="req-body">
+          <div class="req-top-row">
+            <div class="req-code">${s.id}</div>
+            <div class="req-value">${fmtMoeda(total)}</div>
+          </div>
+          <div class="req-cc">${s.projeto}</div>
+          <div class="req-meta">${s.data} · ${s.despesas.length} despesa(s)</div>
+          <div class="req-bottom-row">
+            <span class="badge ${meta.badgeClass}">${meta.label}</span>
+          </div>
+        </div>
+        <div class="chevron">›</div>
+      </div>
+    `;
+  }).join('');
+}
+function clearFilters(){
+  document.getElementById('searchInput').value='';
+  document.getElementById('filterSituacao').value='';
+  renderLista();
+}
+function onClickSolicitacao(id){
+  const s = appState.solicitacoes.find(x=>x.id===id);
+  if(!s) return;
+  currentDetailId = id;
+  if(s.status === 'reprovado_gestor' || s.status === 'reprovado_sla'){
+    abrirDetalheReprovado(s);
+  } else if(s.status === 'pendente_revisao'){
+    abrirDetalhePendenteRevisao(s);
+  } else if(s.status === 'rascunho'){
+    abrirRascunhoParaEdicao(s);
+  } else {
+    // necessario_reanalise / aprovado -> visão simples, reaproveita tela reprovado como "somente leitura" amigável
+    abrirDetalheGenerico(s);
+  }
+}
+function goToLista(){ showView('view-lista'); renderLista(); }
+
+/* ===================== NOVA SOLICITAÇÃO ===================== */
+function abrirNovaSolicitacao(){
+  currentSolicitacaoDraft = { id: null, status:'rascunho', projeto:'', despesas:[], data: novaDataHoje() };
+  document.getElementById('solicitacaoTitulo').textContent = 'Nova Solicitação';
+  document.getElementById('projetoSolicitacao').value = '';
+  document.getElementById('pendingReviewBanner').innerHTML = '';
+  renderDespesasSolicitacao();
+  showView('view-nova-solicitacao');
+}
+function novaDataHoje(){
+  const d = new Date();
+  return d.toLocaleDateString('pt-BR');
+}
+function onProjetoChange(){
+  if(currentSolicitacaoDraft){
+    currentSolicitacaoDraft.projeto = document.getElementById('projetoSolicitacao').value;
+  }
+}
+function renderDespesasSolicitacao(){
+  const container = document.getElementById('despesasContainer');
+  const count = document.getElementById('despesasCount');
+  const list = currentSolicitacaoDraft ? currentSolicitacaoDraft.despesas : [];
+  count.textContent = list.length ? `${list.length} item(ns)` : '';
+  if(list.length === 0){
+    container.innerHTML = '<div class="empty-state" style="padding:24px 10px;">Nenhuma despesa adicionada ainda.</div>';
+    return;
+  }
+  container.innerHTML = list.map((d,idx)=>`
+    <div class="expense-item">
+      <div class="exp-icon">${d.anexos && d.anexos.length ? '📎' : '🧾'}</div>
+      <div class="exp-body">
+        <div class="exp-top">
+          <div class="exp-nature">${d.natureza || '(sem natureza)'} ${d.isDraftExpense ? '<span class="draft-tag">RASCUNHO</span>' : ''}</div>
+          <div class="exp-value">${fmtMoeda(d.valor)}</div>
+        </div>
+        <div class="exp-meta">${d.data || 'sem data'} · ${(d.anexos||[]).length} anexo(s)</div>
+        <div class="exp-actions">
+          <button class="icon-btn" onclick="editarDespesa(${idx})" title="Editar">✎</button>
+          <button class="icon-btn danger" onclick="removerDespesa(${idx})" title="Remover">🗑</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+function removerDespesa(idx){
+  currentSolicitacaoDraft.despesas.splice(idx,1);
+  renderDespesasSolicitacao();
+  showToast('Despesa removida');
+}
+function editarDespesa(idx){
+  editingExpenseIndex = idx;
+  const d = currentSolicitacaoDraft.despesas[idx];
+  currentExpenseDraft = { anexos: [...(d.anexos||[])] };
+  renderAttachmentList('attachmentListStep1');
+  document.getElementById('btnContinuarStep1').disabled = currentExpenseDraft.anexos.length===0;
+  showView('view-despesa-step1');
+  // pré-popula step2 quando avançar
+  currentExpenseDraft._prefill = d;
+}
+function salvarRascunhoSolicitacao(){
+  persistSolicitacao('rascunho');
+  showToast('Solicitação salva como rascunho');
+  goToLista();
+}
+function enviarSolicitacao(){
+  if(!currentSolicitacaoDraft.projeto){
+    showToast('Selecione o projeto antes de enviar');
+    return;
+  }
+  if(currentSolicitacaoDraft.despesas.length===0){
+    showToast('Adicione ao menos uma despesa');
+    return;
+  }
+  const origem = currentSolicitacaoDraft._wasReprovadaOuPendente; // 'pendente' | 'reprovado' | undefined
+  const novoStatus = origem ? 'necessario_reanalise' : 'pendente_revisao';
+  persistSolicitacao(novoStatus);
+  showToast(origem ? 'Solicitação reenviada — status: Necessário reanálise' : 'Solicitação enviada com sucesso');
+  goToLista();
+}
+function persistSolicitacao(status){
+  if(currentSolicitacaoDraft.id){
+    const idx = appState.solicitacoes.findIndex(s=>s.id===currentSolicitacaoDraft.id);
+    currentSolicitacaoDraft.status = status;
+    appState.solicitacoes[idx] = { ...currentSolicitacaoDraft };
+  } else {
+    currentSolicitacaoDraft.id = '#' + (3700 + Math.floor(Math.random()*200));
+    currentSolicitacaoDraft.status = status;
+    appState.solicitacoes.unshift({ ...currentSolicitacaoDraft });
+  }
+}
+
+/* ===================== FLUXO NOVA DESPESA ===================== */
+function abrirNovaDespesa(){
+  editingExpenseIndex = null;
+  currentExpenseDraft = { anexos: [] };
+  renderAttachmentList('attachmentListStep1');
+  document.getElementById('btnContinuarStep1').disabled = true;
+  showView('view-despesa-step1');
+}
+function cancelarNovaDespesa(){
+  currentExpenseDraft = null;
+  showView('view-nova-solicitacao');
+}
+function simularCaptura(origem){
+  const nomes = origem==='camera'
+    ? ['foto_comprovante_'+Date.now().toString().slice(-4)+'.jpg']
+    : ['recibo_galeria_'+Date.now().toString().slice(-4)+'.png'];
+  currentExpenseDraft.anexos.push(nomes[0]);
+  renderAttachmentList('attachmentListStep1');
+  document.getElementById('btnContinuarStep1').disabled = currentExpenseDraft.anexos.length===0;
+  showToast(origem==='camera' ? 'Foto capturada' : 'Arquivo selecionado da galeria');
+}
+function renderAttachmentList(targetId){
+  const el = document.getElementById(targetId);
+  if(!currentExpenseDraft || !currentExpenseDraft.anexos.length){
+    el.innerHTML = '';
+    return;
+  }
+  el.innerHTML = currentExpenseDraft.anexos.map((nome, i)=>`
+    <div class="attachment-chip">
+      <div class="thumb">📄</div>
+      <div style="flex:1;min-width:0;">
+        <div class="fname">${nome}</div>
+        <div class="fsize">Anexo ${i+1}</div>
+      </div>
+      <button class="icon-btn danger" onclick="removerAnexo(${i}, '${targetId}')">✕</button>
+    </div>
+  `).join('');
+}
+function removerAnexo(i, targetId){
+  currentExpenseDraft.anexos.splice(i,1);
+  renderAttachmentList(targetId);
+  if(targetId==='attachmentListStep1'){
+    document.getElementById('btnContinuarStep1').disabled = currentExpenseDraft.anexos.length===0;
+  }
+}
+function irParaStep2(){
+  document.getElementById('projetoPrefilled').textContent =
+    currentSolicitacaoDraft.projeto || '(defina o projeto na solicitação)';
+
+  const prefill = currentExpenseDraft._prefill;
+  document.getElementById('despesaValor').value = prefill ? prefill.valor : '';
+  document.getElementById('despesaData').value = '';
+  document.getElementById('despesaNatureza').value = prefill ? prefill.natureza : '';
+  document.getElementById('despesaReembolsavel').value = prefill ? (prefill.reembolsavel||'') : '';
+  document.getElementById('despesaComentarios').value = prefill ? (prefill.comentarios||'') : '';
+  document.getElementById('policyWarning').classList.remove('show');
+
+  renderAttachmentList('attachmentListStep2');
+  checarPolitica();
+  showView('view-despesa-step2');
+}
+function voltarParaStep1(){
+  showView('view-despesa-step1');
+  renderAttachmentList('attachmentListStep1');
+}
+function checarPolitica(){
+  const sel = document.getElementById('despesaNatureza');
+  const opt = sel.options[sel.selectedIndex];
+  const limite = opt ? Number(opt.getAttribute('data-limite')||0) : 0;
+  const valor = Number(document.getElementById('despesaValor').value||0);
+  const warning = document.getElementById('policyWarning');
+  const text = document.getElementById('policyWarningText');
+  if(limite && valor > limite){
+    text.textContent = `Este valor excede o limite de política para "${opt.value}" (até ${fmtMoeda(limite)}). A solicitação ainda pode ser enviada, mas poderá ser questionada na análise.`;
+    warning.classList.add('show');
+  } else {
+    warning.classList.remove('show');
+  }
+}
+function montarDespesaAtual(isDraft){
+  return {
+    natureza: document.getElementById('despesaNatureza').value,
+    data: document.getElementById('despesaData').value ? formatarDataBR(document.getElementById('despesaData').value) : '',
+    valor: Number(document.getElementById('despesaValor').value||0),
+    reembolsavel: document.getElementById('despesaReembolsavel').value,
+    comentarios: document.getElementById('despesaComentarios').value,
+    anexos: [...(currentExpenseDraft.anexos||[])],
+    ref: '#' + String((currentSolicitacaoDraft.despesas.length)+1).padStart(2,'0'),
+    isDraftExpense: !!isDraft
+  };
+}
+function formatarDataBR(isoStr){
+  const [y,m,d] = isoStr.split('-');
+  return `${d}/${m}/${y}`;
+}
+function adicionarDespesa(){
+  const valorOk = document.getElementById('despesaValor').value;
+  const dataOk = document.getElementById('despesaData').value;
+  const naturezaOk = document.getElementById('despesaNatureza').value;
+  const reembOk = document.getElementById('despesaReembolsavel').value;
+  if(!valorOk || !dataOk || !naturezaOk || !reembOk){
+    showToast('Preencha os campos obrigatórios ou salve como rascunho');
+    return;
+  }
+  const despesa = montarDespesaAtual(false);
+  if(editingExpenseIndex !== null){
+    currentSolicitacaoDraft.despesas[editingExpenseIndex] = despesa;
+  } else {
+    currentSolicitacaoDraft.despesas.push(despesa);
+  }
+  renderDespesasSolicitacao();
+  showToast('Despesa adicionada');
+  showView('view-nova-solicitacao');
+}
+function salvarDespesaRascunho(){
+  const despesa = montarDespesaAtual(true);
+  if(editingExpenseIndex !== null){
+    currentSolicitacaoDraft.despesas[editingExpenseIndex] = despesa;
+  } else {
+    currentSolicitacaoDraft.despesas.push(despesa);
+  }
+  renderDespesasSolicitacao();
+  showToast('Despesa salva como rascunho');
+  showView('view-nova-solicitacao');
+}
+function abrirConfirmarLimpar(){ abrirModal('modalConfirmarLimpar'); }
+function confirmarLimparDespesa(){
+  document.getElementById('despesaValor').value='';
+  document.getElementById('despesaData').value='';
+  document.getElementById('despesaNatureza').value='';
+  document.getElementById('despesaReembolsavel').value='';
+  document.getElementById('despesaComentarios').value='';
+  document.getElementById('policyWarning').classList.remove('show');
+  currentExpenseDraft.anexos = [];
+  renderAttachmentList('attachmentListStep2');
+  fecharModal('modalConfirmarLimpar');
+  showToast('Formulário limpo');
+}
+
+/* ===================== DETALHE: REPROVADO ===================== */
+function abrirDetalheReprovado(s){
+  const isManager = s.status === 'reprovado_gestor';
+  const banner = document.getElementById('detalheReprovadoBanner');
+  if(isManager){
+    banner.innerHTML = `
+      <div class="detail-banner banner-manager">
+        <div class="db-icon">✕</div>
+        <div>
+          <div class="db-title">Reprovado pelo gestor</div>
+          <div class="db-text">Seu gestor analisou esta solicitação e optou por reprová-la com base no mérito da despesa.</div>
+          ${s.comentarioGestor ? `<div class="db-comment">"${s.comentarioGestor}"</div>` : ''}
+        </div>
+      </div>`;
+  } else {
+    banner.innerHTML = `
+      <div class="detail-banner banner-sla">
+        <div class="db-icon">⏱</div>
+        <div>
+          <div class="db-title">Reprovado por SLA expirado</div>
+          <div class="db-text">Esta solicitação não foi avaliada dentro do prazo de 14 dias. <strong>Não houve uma decisão de mérito</strong> — o reembolso pode ser reenviado para nova análise.</div>
+        </div>
+      </div>`;
+  }
+  const total = s.despesas.reduce((a,d)=>a+Number(d.valor),0);
+  document.getElementById('detReprId').textContent = s.id;
+  document.getElementById('detReprData').textContent = s.data;
+  document.getElementById('detReprProjeto').textContent = s.projeto;
+  document.getElementById('detReprValor').textContent = fmtMoeda(total);
+  document.getElementById('detReprDespesas').innerHTML = renderDespesasReadonly(s.despesas);
+  showView('view-detalhe-reprovado');
+}
+function renderDespesasReadonly(despesas){
+  if(!despesas.length) return '<div class="empty-state" style="padding:20px;">Sem despesas.</div>';
+  return despesas.map(d=>`
+    <div class="expense-item">
+      <div class="exp-icon">${(d.anexos||[]).length ? '📎':'🧾'}</div>
+      <div class="exp-body">
+        <div class="exp-top">
+          <div class="exp-nature">${d.natureza}</div>
+          <div class="exp-value">${fmtMoeda(d.valor)}</div>
+        </div>
+        <div class="exp-meta">${d.data} · ${(d.anexos||[]).length} anexo(s)</div>
+      </div>
+    </div>
+  `).join('');
+}
+function editarSolicitacaoReprovada(){
+  const s = appState.solicitacoes.find(x=>x.id===currentDetailId);
+  currentSolicitacaoDraft = { ...s, despesas: s.despesas.map(d=>({...d})), _wasReprovadaOuPendente:'reprovado' };
+  document.getElementById('solicitacaoTitulo').textContent = `Editar Solicitação ${s.id}`;
+  document.getElementById('projetoSolicitacao').value = s.projeto;
+  document.getElementById('pendingReviewBanner').innerHTML = `
+    <div class="detail-banner banner-sla" style="margin-bottom:14px;">
+      <div class="db-icon">ℹ️</div>
+      <div><div class="db-title" style="color:var(--sla-text);">Reabrindo solicitação reprovada</div>
+      <div class="db-text">Ajuste o que for necessário e reenvie. O status mudará para "Necessário reanálise".</div></div>
+    </div>`;
+  renderDespesasSolicitacao();
+  showView('view-nova-solicitacao');
+}
+
+/* ===================== DETALHE: PENDENTE REVISÃO ===================== */
+function abrirDetalhePendenteRevisao(s){
+  document.getElementById('comentarioAnalistaTexto').textContent = '"' + (s.comentarioAnalista || 'Sem comentário detalhado.') + '"';
+  const total = s.despesas.reduce((a,d)=>a+Number(d.valor),0);
+  document.getElementById('detPendId').textContent = s.id;
+  document.getElementById('detPendData').textContent = s.data;
+  document.getElementById('detPendProjeto').textContent = s.projeto;
+  document.getElementById('detPendValor').textContent = fmtMoeda(total);
+  document.getElementById('detPendDespesas').innerHTML = renderDespesasReadonly(s.despesas);
+  showView('view-detalhe-pendente-revisao');
+}
+function ajustarEReenviar(){
+  const s = appState.solicitacoes.find(x=>x.id===currentDetailId);
+  currentSolicitacaoDraft = { ...s, despesas: s.despesas.map(d=>({...d})), _wasReprovadaOuPendente:'pendente' };
+  document.getElementById('solicitacaoTitulo').textContent = `Editar Solicitação ${s.id}`;
+  document.getElementById('projetoSolicitacao').value = s.projeto;
+  document.getElementById('pendingReviewBanner').innerHTML = `
+    <div class="detail-banner banner-review" style="margin-bottom:14px;">
+      <div class="db-icon">↩</div>
+      <div><div class="db-title">Comentário do analista</div>
+      <div class="db-text">"${s.comentarioAnalista || ''}"</div></div>
+    </div>`;
+  renderDespesasSolicitacao();
+  showView('view-nova-solicitacao');
+}
+
+/* ===================== DETALHE GENÉRICO (aprovado / necessário reanálise) ===================== */
+function abrirDetalheGenerico(s){
+  const meta = statusMeta[s.status];
+  const banner = document.getElementById('detalheReprovadoBanner');
+  const colorMap = { aprovado:'banner-review', necessario_reanalise:'banner-review' };
+  banner.innerHTML = `
+    <div class="detail-banner banner-review">
+      <div class="db-icon">${s.status==='aprovado' ? '✓' : '↻'}</div>
+      <div>
+        <div class="db-title">${meta.label}</div>
+        <div class="db-text">${s.status==='aprovado' ? 'Esta solicitação foi aprovada e segue para pagamento.' : 'Esta solicitação foi reenviada e está novamente na fila do financeiro.'}</div>
+      </div>
+    </div>`;
+  const total = s.despesas.reduce((a,d)=>a+Number(d.valor),0);
+  document.getElementById('detReprId').textContent = s.id;
+  document.getElementById('detReprData').textContent = s.data;
+  document.getElementById('detReprProjeto').textContent = s.projeto;
+  document.getElementById('detReprValor').textContent = fmtMoeda(total);
+  document.getElementById('detReprDespesas').innerHTML = renderDespesasReadonly(s.despesas);
+  document.querySelector('#view-detalhe-reprovado .sticky-footer').style.display = 'none';
+  showView('view-detalhe-reprovado');
+}
+
+/* ===================== RASCUNHO: abrir para edição ===================== */
+function abrirRascunhoParaEdicao(s){
+  currentSolicitacaoDraft = { ...s, despesas: s.despesas.map(d=>({...d})) };
+  document.getElementById('solicitacaoTitulo').textContent = `Rascunho ${s.id}`;
+  document.getElementById('projetoSolicitacao').value = s.projeto || '';
+  document.getElementById('pendingReviewBanner').innerHTML = '';
+  document.querySelector('#view-detalhe-reprovado .sticky-footer').style.display = 'flex';
+  renderDespesasSolicitacao();
+  showView('view-nova-solicitacao');
+}
+
+/* ===================== SIMULAÇÃO: ANALISTA DEVOLVE (Onda 3) ===================== */
+function abrirSimulacaoAnalista(){
+  document.getElementById('comentarioAnalistaInput').value='';
+  abrirModal('modalAnalistaDevolver');
+}
+function confirmarDevolucaoAnalista(){
+  const comentario = document.getElementById('comentarioAnalistaInput').value.trim();
+  if(!comentario){ showToast('Inclua um comentário'); return; }
+  // aplica na primeira solicitação "necessario_reanalise" ou na mais recente, como simulação didática
+  let target = appState.solicitacoes.find(s=>s.status==='necessario_reanalise') || appState.solicitacoes[0];
+  target.status = 'pendente_revisao';
+  target.comentarioAnalista = comentario;
+  fecharModal('modalAnalistaDevolver');
+  showToast(`Solicitação ${target.id} devolvida — status: Pendente revisão`);
+  renderLista();
+}
+
+/* ===================== INIT ===================== */
+renderLista();
+</script>
+
+</body>
+</html>
